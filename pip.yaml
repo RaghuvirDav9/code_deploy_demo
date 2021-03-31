@@ -1,0 +1,98 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  pipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      ArtifactStore:
+#        EncryptionKey:
+#          EncryptionKey
+        Location: s3demofiles
+        Type: S3
+
+#      ArtifactStores:
+#        - ArtifactStoreMap
+#      DisableInboundStageTransitions:
+#        - StageTransition
+      Name: pipline1
+      RestartExecutionOnUpdate: True
+      RoleArn: !GetAtt pipRole.Arn
+      Stages:
+        - Actions:
+          - ActionTypeId:
+              Category: Source
+              Owner: ThirdParty
+              Provider: GitHub
+              Version: 1
+            Configuration: {
+              "Owner": "raghuvirdav9",
+              "Repo": "code_deploy_demo",
+              "Branch": "master",
+              "OAuthToken": '264911ea59966a282c7c026d64ba420ca4af85f5' }
+#              InputArtifacts:
+#                - InputArtifact
+            Name: sourceN
+            Namespace: sourceNS
+            OutputArtifacts:
+              - Name: source
+#             Region: String
+#             RoleArn: String
+            RunOrder: 1
+#          Blockers:
+#            - BlockerDeclaration
+          Name: source1
+        - Actions:
+          - ActionTypeId:
+              Category: Deploy
+              Owner: AWS
+              Provider: CodeDeploy
+              Version: 1
+
+            Configuration:
+              ApplicationName: d1
+              DeploymentGroupName: dg1
+            InputArtifacts:
+              - Name: source
+            Name: deploy
+            Namespace: deploy
+#            OutputArtifacts:
+#              - Name: dest
+  #          Region: String
+  #          RoleArn: String
+            RunOrder: 2
+#        Blockers:
+#          - BlockerDeclaration
+          Name: dest
+
+  #      Tags:
+#        - Tag
+
+
+  pipRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codepipeline.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Description: allow to read s3
+#      ManagedPolicyArns:
+#        - String
+#      MaxSessionDuration: Integer
+      Path: /
+#      PermissionsBoundary: String
+      Policies:
+        - PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: '*'
+                Resource: '*'
+          PolicyName: root
+      RoleName: pips3
+#      Tags:
+#        - Tag
